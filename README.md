@@ -68,3 +68,8 @@
     15 - nest g resource elections
     <!-- Este comando nos va a generar un módulo llamado elections schematic resource crea la estructura básica para un módulo que sigue el patrón CRUD (Create, Read, Update, Delete). Es decir, va a preparar todo lo necesario para manejar una entidad en tu aplicación -->
     Elegimos REST API y colocamos que sí y para que nos haga el crud
+
+* Utilizar este comando para probar prisma en el localhost:5555 
+    16 - npx prisma studio
+
+* Probar en postman

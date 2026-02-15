@@ -1,0 +1,13 @@
+MODIFICACIONES DE ARCHIVOS
+app.module.ts
+prisma.service.ts
+elections.module.ts
+elections.module.ts
+elections.service.ts
+elections.controller.ts
+create-election.dto.ts
+update-election.dto.ts
+Modificar prisma
+backend\package.json
+backend\prisma\schema.prisma
+backend\prisma.config.ts
