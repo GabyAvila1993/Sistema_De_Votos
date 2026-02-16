@@ -13,41 +13,61 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ElectionStatus {
+  upcoming
+  active
+  closed
+}
+
+enum UserRole {
+  admin
+  operador
+  votar
+}
+
 model Election {
-  id          Int         @id @default(autoincrement())
+  id          Int             @id @default(autoincrement())
   name        String
   date        DateTime
-  status      String      
+  status      ElectionStatus  @default(upcoming)
   candidates  Candidate[]
   votes       Vote[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now())
 }
 
 model Voter {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String
-  dni       String   @unique
-  role      String   @default("votar")
+  dni       String    @unique
+  role      UserRole  @default(votar)
   votes     Vote[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
 }
 
 model Candidate {
   id          Int       @id @default(autoincrement())
   name        String
   electionId  Int
-  election    Election  @relation(fields: [electionId], references: [id])
+  election    Election  @relation(fields: [electionId], references: [id], onDelete: Cascade)
   votes       Vote[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
 }
 
 model Vote {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   voterId     Int
   electionId  Int
   candidateId Int
-  timestamp   DateTime @default(now())
+  timestamp   DateTime  @default(now())
   
-  voter       Voter     @relation(fields: [voterId], references: [id])
-  election    Election  @relation(fields: [electionId], references: [id])
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  voter       Voter     @relation(fields: [voterId], references: [id], onDelete: Cascade)
+  election    Election  @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   @@unique([voterId, electionId])
+  @@index([electionId])
+  @@index([candidateId])
 }

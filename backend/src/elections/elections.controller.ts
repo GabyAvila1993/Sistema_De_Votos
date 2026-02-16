@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ElectionsService } from './elections.service';
 import { CreateElectionDto } from './dto/create-election.dto';
 import { UpdateElectionDto } from './dto/update-election.dto';
@@ -13,13 +13,35 @@ export class ElectionsController {
   }
 
   @Get()
-  findAll() {
-    return this.electionsService.findAll();
+  findAll(
+    @Query('status') status?: 'upcoming' | 'active' | 'closed',
+    @Query('name') name?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const filters = {
+      status,
+      name,
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+    };
+    
+    // Eliminar propiedades undefined
+    Object.keys(filters).forEach(
+      (key) => filters[key] === undefined && delete filters[key],
+    );
+
+    return this.electionsService.findAll(filters);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.electionsService.findOne(+id);
+  }
+
+  @Get(':id/results')
+  getResults(@Param('id') id: string, @Query('role') role?: string) {
+    return this.electionsService.getResults(+id, role);
   }
 
   @Patch(':id')
