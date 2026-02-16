@@ -1,0 +1,296 @@
+{
+  "info": {
+    "name": "eVote System - Autenticación",
+    "description": "Colección de endpoints para probar el sistema de autenticación y autorización",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Usuarios",
+      "item": [
+        {
+          "name": "Crear Usuario ADMIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newadmin@example.com\",\n  \"password\": \"securepass123\",\n  \"dni\": \"99999999Z\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Crear Usuario VOTER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newvoter@example.com\",\n  \"password\": \"votpass123\",\n  \"dni\": \"88888888Y\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Listar Todos los Usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Usuario por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/users/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar Usuario",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"updated@example.com\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/users/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar Usuario",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/users/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["users", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Autenticación",
+      "item": [
+        {
+          "name": "Login ADMIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login VOTER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"voter1@example.com\",\n  \"password\": \"voter123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Endpoints Protegidos",
+      "item": [
+        {
+          "name": "Ver Resultados (ADMIN ONLY)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer 1-1708075233000-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
+                "description": "Cambiar con el token del admin"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/elections/1/results",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["elections", "1", "results"]
+            }
+          }
+        },
+        {
+          "name": "Emitir Voto (VOTER ONLY)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer 2-1708075233000-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
+                "description": "Cambiar con el token del voter"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voterId\": 1,\n  \"electionId\": 1,\n  \"candidateId\": 1\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/votes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["votes"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Probando Control de Roles",
+      "item": [
+        {
+          "name": "VOTER intenta ver Resultados (Debe fallar 403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer 2-1708075233000-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
+                "description": "Token de VOTER"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/elections/1/results",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["elections", "1", "results"]
+            }
+          }
+        },
+        {
+          "name": "ADMIN intenta Emitir Voto (Debe fallar 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer 1-1708075233000-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
+                "description": "Token de ADMIN"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voterId\": 1,\n  \"electionId\": 1,\n  \"candidateId\": 1\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/votes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["votes"]
+            }
+          }
+        },
+        {
+          "name": "Request sin Token (Debe fallar 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/elections/1/results",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["elections", "1", "results"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+BASE URL: http://localhost:3000
+
+INSTRUCCIONES GENERALES:
+- En Postman, para cuerpos JSON seleccioná Body -> raw -> JSON (application/json).
+- Añadí siempre Header: Content-Type -> application/json (escribilo correctamente: "application/json").
+- Token de autorización: este proyecto usa un "token" simple que es el id numérico del `User` como string. Ponerlo en el header `x-auth-token` o `Authorization`.
+- Campos únicos y reglas importantes:
+  - `User.email` es único.
+  - `Voter.dni` es único.
+  - `Vote` tiene una restricción única por `(voterId, electionId)` (un votante no puede votar dos veces en la misma elección).
+
+ORDEN RECOMENDADO DE PRUEBAS:
+1) Registrar `User` (POST /users/register)
+2) Login (POST /auth/login) -> guardar token (ej. "1")
+3) Crear `Election` (POST /elections)
+4) Crear `Candidate` (POST /candidates)
+5) Crear `Voter` (POST /voters)
+6) Emitir `Vote` (POST /votes) usando `x-auth-token` del `User` con role VOTER
+7) Consultas: listar votos, resultados, listar candidatos, etc.
+
+--- PETICIONES (copiá y pegá en Postman) ---
+
+1) Registrar usuario (User)
+- Método: POST
+- URL: http://localhost:3000/users/register
+- Headers:
+  - Content-Type: application/json
+- Body (JSON):
+{
+  "name": "Alice",
+  "email": "alice@example.com",
+  "password": "secret"
+}
+- curl:
+curl -X POST http://localhost:3000/users/register -H "Content-Type: application/json" -d '{"name":"Alice","email":"alice@example.com","password":"secret"}'
+
+Observaciones: El `role` del `User` no se pasa por este endpoint (por defecto el `User.role` será `VOTER`). Para crear un `ADMIN` tendrías que insertar directamente en la BD o seed.
+
+2) Login (obtener token)
+- Método: POST
+- URL: http://localhost:3000/auth/login
+- Headers:
+  - Content-Type: application/json
+- Body (JSON):
+{
+  "email": "alice@example.com",
+  "password": "secret"
+}
+- curl:
+curl -X POST http://localhost:3000/auth/login -H "Content-Type: application/json" -d '{"email":"alice@example.com","password":"secret"}'
+
+Respuesta esperada: { "token": "1", "user": { "id":1, "name":"Alice", "email":"alice@example.com", "role":"VOTER" } }
+
+3) Crear elección (Election)
+- Método: POST
+- URL: http://localhost:3000/elections
+- Headers:
+  - Content-Type: application/json
+- Body (JSON):
+{
+  "name": "Elección prueba",
+  "date": "2026-02-16T12:00:00Z",
+  "status": "active"
+}
+- curl:
+curl -X POST http://localhost:3000/elections -H "Content-Type: application/json" -d '{"name":"Elección prueba","date":"2026-02-16T12:00:00Z","status":"active"}'
+
+Guarda el `id` devuelto (ej. `electionId`).
+
+4) Crear candidato (Candidate)
+- Método: POST
+- URL: http://localhost:3000/candidates
+- Headers:
+  - Content-Type: application/json
+- Body (JSON):
+{
+  "name": "Candidato A",
+  "electionId": 1
+}
+- curl:
+curl -X POST http://localhost:3000/candidates -H "Content-Type: application/json" -d '{"name":"Candidato A","electionId":1}'
+
+Reemplazá `1` por el `electionId` que obtuviste.
+
+5) Crear votante (Voter)
+- Método: POST
+- URL: http://localhost:3000/voters
+- Headers:
+  - Content-Type: application/json
+- Body (JSON):
+{
+  "name": "Votante 1",
+  "dni": "12345678",
+  "role": "votar"
+}
+- curl:
+curl -X POST http://localhost:3000/voters -H "Content-Type: application/json" -d '{"name":"Votante 1","dni":"12345678","role":"votar"}'
+
+Guarda `voterId` devuelto.
+
+6) Emitir voto (Vote) — protegido (solo `User.role` = `VOTER`)
+- Método: POST
+- URL: http://localhost:3000/votes
+- Headers:
+  - Content-Type: application/json
+  - x-auth-token: 1            <-- poné aquí el token del User (es su id como string)
+- Body (JSON):
+{
+  "voterId": 1,
+  "electionId": 1,
+  "candidateId": 1
+}
+- curl:
+curl -X POST http://localhost:3000/votes -H "Content-Type: application/json" -H "x-auth-token: 1" -d '{"voterId":1,"electionId":1,"candidateId":1}'
+
+Posibles errores al votar:
+- 403 Forbidden: token ausente o inválido, o user no tiene role `VOTER`.
+- 400/409: si intentás votar dos veces (único por voter/election) o ids inválidos.
+
+7) Listar votos (protegido, solo ADMIN)
+- Método: GET
+- URL: http://localhost:3000/votes?electionId=1
+- Headers:
+  - x-auth-token: <adminToken>
+- curl:
+curl -X GET "http://localhost:3000/votes?electionId=1" -H "x-auth-token: 2"
+
+Nota: para este endpoint el token debe corresponder a un `User.role` = `ADMIN`.
+
+8) Otras consultas útiles (sin o con auth según controlador)
+- GET todas las elecciones:
+  GET http://localhost:3000/elections
+  curl -X GET http://localhost:3000/elections
+
+- GET resultados de una elección:
+  GET http://localhost:3000/elections/1/results
+  curl -X GET http://localhost:3000/elections/1/results
+
+- GET candidatos por elección:
+  GET http://localhost:3000/candidates?electionId=1
+  curl -X GET "http://localhost:3000/candidates?electionId=1"
+
+- GET votantes:
+  GET http://localhost:3000/voters
+  curl -X GET http://localhost:3000/voters
+
+- GET usuarios:
+  GET http://localhost:3000/users
+  curl -X GET http://localhost:3000/users
+
+--- VERIFICACIONES Y ERRORES PROBABLES A REVISAR ---
+1) Content-Type mal escrito -> body `undefined` -> TypeError (ya te pasó: "aplication/json"). Asegurate de escribir "application/json".
+2) Usar `form-data` en lugar de `raw` JSON producirá `undefined` si el servidor espera JSON.
+3) Token esperado: el proyecto NO usa JWT por defecto; el token es el id del `User`. Si enviás un JWT u otro string no numérico fallará la conversión a entero en `RolesGuard`.
+4) Roles y enums confusos: hay `Voter` (entidad `Voter` con enum `UserRole` en minúscula) y `User` (entidad `User` con enum `Role` en mayúscula). El guard `RolesGuard` usa `prisma.user.role` (el enum `Role` con valores `ADMIN`/`VOTER`). Asegurate de usar el `User` correcto para autorizar endpoints protegidos.
+5) Restricciones en BD: campos únicos (`email`, `dni`) y la restricción única en `Vote` (no duplicar voto).
+6) IDs inválidos o referencias (por ejemplo `candidate.electionId` debe existir) lanzarán errores de Prisma.
+
+--- Sugerencias finales ---
+- Para pruebas rápidas podés usar `curl` o pegar cada bloque JSON y curl en Postman.
+- Si necesitás un `User` ADMIN para probar `GET /votes`, crealo manualmente en Prisma Studio o mediante seed con `role` = `ADMIN`.
+
+Archivo creado: `backend/postma.txt` — contiene todas las peticiones y ejemplos curl listos para pegar en Postman.
+
+¿Querés que genere también una versión en formato Postman Collection JSON (para que copies el contenido y lo pegues en un archivo .json), o preferís estos snippets para pegar uno por uno?"
